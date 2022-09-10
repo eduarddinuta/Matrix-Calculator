@@ -1,0 +1,92 @@
+Copyright Dinuta Eduard-Stefan 311CA
+
+   Programul contine un software numeric asemanator GNU Octave,
+folosind limbajul C. Pentru implementare sunt folosite 3 fisiere:
+my_octave.c, unde sunt citite comenzile si apelate functiile,
+my_functions.h, un header ce contine definitiile functiilor si
+my_functions.c ce contine implementarile functiilor necesare
+comenzilor. Pe parcusul programului fiecare tablou este
+alocat dinamic, iar dupa terminarea utilizarii acestuia memoria este
+eliberata, fiind luate in calcul si posibilele erori de alocare, caz
+in care memoria pana in acel moment este eliberata si executia programului
+se opreste, afisand un mesaj de eroare. De asemenea, pentru a evita un
+overflow toate valorile sunt calculate modulo 10^4 + 7.
+   La inceput este declarata memoria ce va contine toate matricile folosite.
+Memoria este o structura de date, numita memory_t, ce contine 3 campuri:
+un dublu pointer ce contine o matrice, numarul de linii si numarul de coloane.
+Aceasta are initial dimensiunea 0, deoarece nu contine nimic, si capacitatea
+1. Apoi sunt citite comenzile si se realizeaza operatia descrisa de fiecare.
+Inainte de a realiza o comanda este verificat daca mai este loc in memorie 
+pentru adaugarea unei matrici. Daca nu, memoria este redimensionata folosind
+functia resize(), care permite atat marirea cat si micsorarea dimensiunii 
+memoriei. Comenzile sunt citite pana la intalnirea lui Q, caz in care este
+eliberata toata memoria si executia programului se opreste.
+   Fiecare operatie descrisa are o functie proprie. De asemenea exista functii
+auxiliare care ajuta la realizarea acestora, cum ar fi cele care aloca dinamic
+un vector sau o matrice. Functiile corespunzatoare operatiilor sunt:
+
+• add() : 
+   Functia adauga o matrice in memorie si mareste dimensiunea cu 1. Pentru
+operatia de adaugare 'L' este citita mai intai matricea in main(), folosind
+functia read_matrix(), apoi sunt memorate dimensiunile matricei si aceasta
+este adaugata in memorie. Functia add() este folosita si de alte operatii.
+
+• print_matrix_dimensions() :
+   Functia afiseaza dimensiunile unei matrici cu indexul dat, la intalnirea
+comenzii 'D'. Se verifica mai intai daca exita o matrice cu acel index si 
+apoi sunt afisate dimensiunile din campurile lin si col ale structurii.
+
+• print_matrix() :
+   Functia afiseaza o matrice din memorie cu un index dat, la intalnirea
+comenzii 'P'. Se verifica mai intai daca exita o matrice cu acel index,
+apoi este afisata matricea corespunzatoare.
+
+• crop_matrix() :
+  Functia realizeaza redimensionarea unei matrici, folosind linii si coloane
+date, la intalnirea comenzii 'C'. Se citesc aceste linii si coloane in 2 
+vectori alocati dinamic. Se verifica mai intai daca exita o matrice cu acel 
+index, apoi este construita matricea ceruta, intr-o matrice auxiliara, 
+pe baza indecsilor cititi. In final este copiata matricea auxiliara in 
+cea din memorie.
+
+• product() :
+  Functia realizeaza produsul a doua matrici din memorie, la intalnirea 
+comenzii 'M'. Se verifica mai intai daca exita o matrice cu acel 
+index si apoi daca dimensiunile celor 2 matrici permit realizarea
+inmultirii. Este construita o matrice auxiliara in care este realizat
+produsul, care este returnata de functie. In main(), daca inmultirea
+a avut succes, noua matrice este introdusa in memorie.
+
+• erase() :
+  Functia realizeaza stergerea unei matrici din memorie, la intalnirea
+comenzii 'F'. Se verifica mai intai daca exita o matrice cu acel 
+index, apoi este eliberata memoria pentru matricea data si toate
+matricile de la acel index sunt permutate cu o pozitie la dreapta.
+In final dimensiunea scade cu 1. Dupa aceasta operatie este verificat
+in main() daca dimensiunea este mai mica decat jumatate din capacitate,
+caz in care folosim memorie inutil, iar aceasta este redimensionata la
+jumatate folosind functia resize()
+
+• strassen() :
+  Functia realizeaza produsul a doua matrici din memorie, la intalnirea
+comenzii 'S', intr-un mod mai eficient decat la operatia 'M', folosind
+algoritmul lui strassen. Mai intai este tratat cazul de baza, cand 
+dimensiuna matricilor este 1. Atunci trebuie returnat doar produsul celor
+doua numere. Apoi fiecare matrice de dimensiune 2^n este partitionata in 4
+submatrici de dimensiune 2^(n-1) cu ajutorul functiei partition(). Cu ajutorul
+acestor partitii sunt construite cele 7 matrici auxiliare, folosind functia
+build_M(). Astfel, in fiecare apel sunt realizate doar 7 inmultiri. Cu cele 7
+matrici calculate anterior sunt construite partitiile matricei rezultat prin
+functia build_CP(). In final este reconstituita matricea rezultat prin 
+alaturarea celor 4 submatrici. La constructia matricilor auxiliare M, este 
+apelat recursiv algoritmul strassen si de asemenea este folosita functia
+sum_matrix() care returneaza suma a doua matrici.
+  In main se verifica daca inmultirea poate fi realizata, se apeleaza functia
+strassen, iar daca inmultirea are succes noua matrice este adaugata in memorie
+prin functia add()
+
+• free_memory() :
+  Functia elibereaza memoria folosita de un tablou de tip memory_t. Aceasta 
+este folosita atat la intalnirea operatiei 'Q' pentru a elibera memoria 
+inainte de oprirea executiei, cat si in cadrul algoritmului strassen la 
+trecerea de la un apel la altul.
